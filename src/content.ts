@@ -226,8 +226,14 @@
     });
 
     image.addEventListener("load", () => {
-      if (isPlaceholderThumbnail(image) && hasNextThumbnail(state.qualityIndex)) {
-        tryNextThumbnail();
+      if (isPlaceholderThumbnail(image)) {
+        if (hasNextThumbnail(state.qualityIndex)) {
+          tryNextThumbnail();
+          return;
+        }
+
+        state.loadedThumbnailUrl = "";
+        setStatus(m.thumbnailFailed, "error");
         return;
       }
 
