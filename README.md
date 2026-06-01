@@ -25,10 +25,10 @@ Press **`⌘⇧Y`** on any YouTube video page to preview and download the highes
 |:---|:---|:---|
 | 🖼️ | **Hi-res thumbnails** | Automatically resolves the best quality: `maxresdefault` → `sddefault` → `hqdefault` |
 | ⌨️ | **Keyboard shortcut** | `⌘⇧Y` / `Ctrl+Shift+Y` to instantly show the preview |
-| 👁️ | **Preview before download** | Confirm the thumbnail, then `Enter` to download or `Escape` to cancel |
+| 👁️ | **Preview before download** | Confirm the thumbnail, then `Enter` to download, `⌘/Ctrl+Enter` to choose where to save, or `Escape` to cancel |
 | 📝 | **Auto file naming** | Names files like `Video title_VIDEOID.jpg`; invalid characters are replaced automatically |
 | 🎯 | **Broad URL support** | Works on regular videos, Shorts, and `youtu.be` short links |
-| 🔧 | **Settings page** | Configure language, file name format, and the save dialog via the extension options |
+| 🔧 | **Settings page** | Configure language, file name format, and the default download folder |
 
 <br>
 
@@ -99,7 +99,13 @@ npm run build
                     ▼                     ▼
           ┌──────────────────┐   ┌─────────────────┐
           │ Enter: Download   │   │  Escape: Cancel │
-          └──────────────────┘   └─────────────────┘
+          └─────────┬────────┘   └─────────────────┘
+                    │
+                    ▼
+          ┌──────────────────┐
+          │ Ctrl/⌘+Enter:    │
+          │ Choose location  │
+          └──────────────────┘
 ```
 
 ### Settings
@@ -108,7 +114,9 @@ npm run build
 2. You can configure:
    - **Language**: Auto / English / 日本語
    - **File name format**: `Title + video ID` / `Title` / `Video ID only`
-   - **Show the save dialog**: when on, the browser asks where to save each time; when off, files go straight to your downloads folder
+   - **Default download folder**: `Downloads` saves to the browser downloads folder; subfolders such as `YouTube/Thumbnails` are created under it
+
+In the preview overlay, press **Enter** to save to the default download folder. Press **⌘+Enter** on macOS or **Ctrl+Enter** on Windows/Linux to choose the save location with the browser dialog.
 
 > [!NOTE]
 > If the shortcut doesn't work, go to `chrome://extensions/shortcuts` and manually set the shortcut for `yt-cap`. The `suggested_key` in the manifest is only a suggestion and may not be automatically assigned by Chrome.

@@ -35,9 +35,10 @@ export type FilenameFormat = "title" | "titleId" | "id";
 export type Settings = {
   language: LanguageSetting;
   filenameFormat: FilenameFormat;
-  showSaveDialog: boolean;
+  defaultDownloadFolder: string;
 };
 
 export type DownloadRequest = VideoMetadata & {
   thumbnailUrl: string;
+  useSaveDialog?: boolean;
 };

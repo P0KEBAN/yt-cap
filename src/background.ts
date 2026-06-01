@@ -16,11 +16,12 @@ import type {
 const DEFAULT_SETTINGS: Settings = {
   language: "auto",
   filenameFormat: "titleId",
-  showSaveDialog: false,
+  defaultDownloadFolder: "",
 };
 
 // ファイル名に使えない・避けたい文字。Windows禁止文字＋制御文字を含む。
 const INVALID_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1F]/g;
+const INVALID_FOLDER_CHARS = /[<>:"\\|?*\x00-\x1F]/g;
 const MAX_FILENAME_BASE_LENGTH = 120;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
 
@@ -122,13 +123,16 @@ async function downloadThumbnail(
     throw new Error(m.thumbnailFailed);
   }
 
-  const filename = buildFilename(request, settings.filenameFormat);
+  const filename = buildDownloadPath(
+    buildFilename(request, settings.filenameFormat),
+    settings.defaultDownloadFolder,
+  );
 
   try {
     const downloadId = await chrome.downloads.download({
       url: thumbnailUrl,
       filename,
-      saveAs: settings.showSaveDialog,
+      saveAs: request.useSaveDialog === true,
     });
     await waitForDownload(downloadId, m);
   } catch (error) {
@@ -206,7 +210,9 @@ async function loadSettings(): Promise<Settings> {
   return {
     language: normalizeLanguage(saved.language),
     filenameFormat: normalizeFilenameFormat(saved.filenameFormat),
-    showSaveDialog: saved.showSaveDialog === true,
+    defaultDownloadFolder: normalizeDownloadFolder(
+      saved.defaultDownloadFolder,
+    ),
   };
 }
 
@@ -220,6 +226,37 @@ function normalizeFilenameFormat(value: unknown): FilenameFormat {
   return value === "title" || value === "titleId" || value === "id"
     ? value
     : DEFAULT_SETTINGS.filenameFormat;
+}
+
+function normalizeDownloadFolder(value: unknown): string {
+  if (typeof value !== "string") {
+    return DEFAULT_SETTINGS.defaultDownloadFolder;
+  }
+
+  const normalized = value.trim().replace(/\\/g, "/");
+  const segments = normalized
+    .split("/")
+    .map((segment) => sanitizeFolderSegment(segment))
+    .filter(Boolean);
+
+  if (
+    segments[0]?.toLowerCase() === "downloads" ||
+    segments[0] === "ダウンロード"
+  ) {
+    segments.shift();
+  }
+
+  return segments.join("/");
+}
+
+function sanitizeFolderSegment(value: string): string {
+  const sanitized = value
+    .replace(INVALID_FOLDER_CHARS, "_")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^\.+$/, "");
+
+  return sanitized === "." || sanitized === ".." ? "" : sanitized;
 }
 
 /**
@@ -250,6 +287,10 @@ function buildFilename(
   }
 
   return `${truncate(base, MAX_FILENAME_BASE_LENGTH)}.${extension}`;
+}
+
+function buildDownloadPath(filename: string, folder: string): string {
+  return folder ? `${folder}/${filename}` : filename;
 }
 
 function sanitizeFilenamePart(value: string): string {

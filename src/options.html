@@ -38,16 +38,22 @@
           automatically.
         </p>
 
-        <label class="checkbox">
-          <input id="show-save-dialog" name="showSaveDialog" type="checkbox" />
-          <span data-i18n="showSaveDialog"
-            >Show the save dialog on download</span
+        <label>
+          <span data-i18n="defaultDownloadFolder"
+            >Default download folder</span
           >
+          <input
+            id="default-download-folder"
+            name="defaultDownloadFolder"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+          />
         </label>
 
-        <p class="hint" data-i18n="showSaveDialogHint">
-          When on, the browser asks where to save each time. When off, files go
-          straight to your downloads folder.
+        <p class="hint" data-i18n="defaultDownloadFolderHint">
+          Use Downloads or leave blank to save at the root of the browser
+          downloads folder. Subfolders are created under it.
         </p>
 
         <div class="actions">

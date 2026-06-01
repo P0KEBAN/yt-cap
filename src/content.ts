@@ -10,6 +10,7 @@
 
   type DownloadRequest = VideoMetadata & {
     thumbnailUrl: string;
+    useSaveDialog?: boolean;
   };
 
   type DownloadThumbnailMessage = {
@@ -40,7 +41,8 @@
       downloading: "Downloading...",
       downloaded: "Downloaded",
       downloadFailed: "Failed to download the thumbnail",
-      downloadHint: "Press Enter to download",
+      downloadHint:
+        "Press Enter to download. Press {shortcut} to choose where to save",
       thumbnailFailed: "Could not fetch the thumbnail",
     },
     ja: {
@@ -50,7 +52,7 @@
       downloading: "ダウンロード中...",
       downloaded: "ダウンロードしました",
       downloadFailed: "サムネイルのダウンロードに失敗しました",
-      downloadHint: "Enterでダウンロード",
+      downloadHint: "Enterでダウンロード、{shortcut}で保存先を選択",
       thumbnailFailed: "サムネイルを取得できませんでした",
     },
   };
@@ -156,7 +158,7 @@
       status.dataset.variant = variant;
     };
 
-    const download = async (): Promise<void> => {
+    const download = async (useSaveDialog: boolean): Promise<void> => {
       if (state.downloading) {
         return;
       }
@@ -173,6 +175,7 @@
         const response = await sendDownloadMessage({
           ...metadata,
           thumbnailUrl: state.loadedThumbnailUrl,
+          useSaveDialog,
         });
 
         if (!response.ok) {
@@ -215,8 +218,14 @@
         return;
       }
 
+      const useSaveDialog = isSaveDialogEnter(event);
+
+      if (!useSaveDialog && !isPlainEnter(event)) {
+        return;
+      }
+
       event.preventDefault();
-      void download();
+      void download(useSaveDialog);
     };
 
     overlay.addEventListener("click", (event) => {
@@ -238,7 +247,7 @@
       }
 
       state.loadedThumbnailUrl = image.currentSrc || image.src;
-      setStatus(m.downloadHint);
+      setStatus(formatDownloadHint(m.downloadHint));
     });
     image.addEventListener("error", tryNextThumbnail);
     document.addEventListener("keydown", onKeyDown, true);
@@ -315,6 +324,40 @@
 
   function hasNextThumbnail(qualityIndex: number): boolean {
     return qualityIndex < THUMBNAIL_QUALITIES.length - 1;
+  }
+
+  function isPlainEnter(event: KeyboardEvent): boolean {
+    return (
+      event.key === "Enter" &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      !event.shiftKey
+    );
+  }
+
+  function isSaveDialogEnter(event: KeyboardEvent): boolean {
+    if (event.key !== "Enter" || event.altKey || event.shiftKey) {
+      return false;
+    }
+
+    if (isApplePlatform()) {
+      return event.metaKey && !event.ctrlKey;
+    }
+
+    return event.ctrlKey && !event.metaKey;
+  }
+
+  function isApplePlatform(): boolean {
+    return /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+  }
+
+  function formatDownloadHint(message: string): string {
+    return message.replace("{shortcut}", getSaveDialogShortcutLabel());
+  }
+
+  function getSaveDialogShortcutLabel(): string {
+    return isApplePlatform() ? "Command+Enter" : "Ctrl+Enter";
   }
 
   function isPlaceholderThumbnail(image: HTMLImageElement): boolean {

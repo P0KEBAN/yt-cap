@@ -9,15 +9,16 @@ import type { FilenameFormat, LanguageSetting, Settings } from "./types";
 const DEFAULT_SETTINGS: Settings = {
   language: "auto",
   filenameFormat: "titleId",
-  showSaveDialog: false,
+  defaultDownloadFolder: "",
 };
 
 const form = requireElement<HTMLFormElement>("#settings-form");
 const languageSelect = requireElement<HTMLSelectElement>("#language");
 const filenameFormatSelect =
   requireElement<HTMLSelectElement>("#filename-format");
-const showSaveDialogInput =
-  requireElement<HTMLInputElement>("#show-save-dialog");
+const defaultDownloadFolderInput = requireElement<HTMLInputElement>(
+  "#default-download-folder",
+);
 const statusElement = requireElement<HTMLElement>("#status");
 
 let messages: Messages = getMessages("en");
@@ -28,7 +29,9 @@ async function initialize(): Promise<void> {
   const settings = await loadSettings();
   languageSelect.value = settings.language;
   filenameFormatSelect.value = settings.filenameFormat;
-  showSaveDialogInput.checked = settings.showSaveDialog;
+  defaultDownloadFolderInput.value = formatDownloadFolderForForm(
+    settings.defaultDownloadFolder,
+  );
 
   applyLanguage(settings.language);
 
@@ -75,13 +78,19 @@ async function loadSettings(): Promise<Settings> {
   return {
     language: normalizeLanguage(saved.language),
     filenameFormat: normalizeFilenameFormat(saved.filenameFormat),
-    showSaveDialog: saved.showSaveDialog === true,
+    defaultDownloadFolder: normalizeDownloadFolder(
+      saved.defaultDownloadFolder,
+    ),
   };
 }
 
 async function saveSettings(): Promise<void> {
   const settings = readFormSettings();
   await chrome.storage.sync.set(settings);
+  await chrome.storage.sync.remove("showSaveDialog");
+  defaultDownloadFolderInput.value = formatDownloadFolderForForm(
+    settings.defaultDownloadFolder,
+  );
   applyLanguage(settings.language);
   setStatus(messages.saved, "success");
 }
@@ -90,7 +99,9 @@ function readFormSettings(): Settings {
   return {
     language: normalizeLanguage(languageSelect.value),
     filenameFormat: normalizeFilenameFormat(filenameFormatSelect.value),
-    showSaveDialog: showSaveDialogInput.checked,
+    defaultDownloadFolder: normalizeDownloadFolder(
+      defaultDownloadFolderInput.value,
+    ),
   };
 }
 
@@ -104,6 +115,41 @@ function normalizeFilenameFormat(value: unknown): FilenameFormat {
   return value === "title" || value === "titleId" || value === "id"
     ? value
     : DEFAULT_SETTINGS.filenameFormat;
+}
+
+function normalizeDownloadFolder(value: unknown): string {
+  if (typeof value !== "string") {
+    return DEFAULT_SETTINGS.defaultDownloadFolder;
+  }
+
+  const normalized = value.trim().replace(/\\/g, "/");
+  const segments = normalized
+    .split("/")
+    .map((segment) => sanitizeFolderSegment(segment))
+    .filter(Boolean);
+
+  if (
+    segments[0]?.toLowerCase() === "downloads" ||
+    segments[0] === "ダウンロード"
+  ) {
+    segments.shift();
+  }
+
+  return segments.join("/");
+}
+
+function sanitizeFolderSegment(value: string): string {
+  const sanitized = value
+    .replace(/[<>:"\\|?*\x00-\x1F]/g, "_")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^\.+$/, "");
+
+  return sanitized === "." || sanitized === ".." ? "" : sanitized;
+}
+
+function formatDownloadFolderForForm(folder: string): string {
+  return folder || "Downloads";
 }
 
 function setStatus(

@@ -12,8 +12,8 @@ export type Messages = {
   filenameTitleId: string;
   filenameId: string;
   filenameHint: string;
-  showSaveDialog: string;
-  showSaveDialogHint: string;
+  defaultDownloadFolder: string;
+  defaultDownloadFolderHint: string;
   save: string;
   saved: string;
   // overlay (content script)
@@ -41,16 +41,17 @@ export const MESSAGES: Record<Locale, Messages> = {
     filenameId: "Video ID only (ID.jpg)",
     filenameHint:
       "Characters that cannot be used in file names are replaced automatically.",
-    showSaveDialog: "Show the save dialog on download",
-    showSaveDialogHint:
-      "When on, the browser asks where to save each time. When off, files go straight to your downloads folder.",
+    defaultDownloadFolder: "Default download folder",
+    defaultDownloadFolderHint:
+      "Use Downloads or leave blank to save at the root of the browser downloads folder. Subfolders are created under it.",
     save: "Save",
     saved: "Saved",
     loading: "Loading...",
     thumbnailLoading: "Thumbnail is still loading",
     downloading: "Downloading...",
     downloaded: "Downloaded",
-    downloadHint: "Press Enter to download",
+    downloadHint:
+      "Press Enter to download. Press {shortcut} to choose where to save",
     thumbnailFailed: "Could not fetch the thumbnail",
     unsupportedPage: "This page is not supported",
     cannotRunHere: "Cannot run on this page",
@@ -66,16 +67,16 @@ export const MESSAGES: Record<Locale, Messages> = {
     filenameTitleId: "タイトル＋動画ID（動画タイトル_ID.jpg）",
     filenameId: "動画IDのみ（ID.jpg）",
     filenameHint: "ファイル名に使えない文字は自動で置き換えます。",
-    showSaveDialog: "ダウンロード時に保存ダイアログを表示する",
-    showSaveDialogHint:
-      "オンにすると毎回保存先を選べます。オフのときはダウンロードフォルダへ直接保存します。",
+    defaultDownloadFolder: "デフォルトのダウンロード場所",
+    defaultDownloadFolderHint:
+      "Downloads または空欄ならブラウザのダウンロードフォルダ直下に保存します。サブフォルダはその配下に作成されます。",
     save: "保存",
     saved: "保存しました",
     loading: "読み込み中...",
     thumbnailLoading: "サムネイルを読み込み中です",
     downloading: "ダウンロード中...",
     downloaded: "ダウンロードしました",
-    downloadHint: "Enterでダウンロード",
+    downloadHint: "Enterでダウンロード、{shortcut}で保存先を選択",
     thumbnailFailed: "サムネイルを取得できませんでした",
     unsupportedPage: "このページは対応していません",
     cannotRunHere: "このページでは実行できません",
