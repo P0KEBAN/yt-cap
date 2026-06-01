@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "yt-cap",
+  "version": "0.1.0",
+  "description": "Preview the current YouTube video's thumbnail and download it.",
+  "permissions": ["activeTab", "scripting", "storage", "downloads", "notifications"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://youtube.com/*",
+    "https://m.youtube.com/*",
+    "https://youtu.be/*",
+    "https://img.youtube.com/*",
+    "https://i.ytimg.com/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.js",
+    "type": "module"
+  },
+  "options_page": "src/options.html",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Preview thumbnail and download",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "commands": {
+    "download-thumbnail": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "Preview and download the YouTube thumbnail"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "yt-cap",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension to preview the current YouTube video's thumbnail and download it.",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --noEmit --project tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "typescript": "^5.4.5"
+  }
+}

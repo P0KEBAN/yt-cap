@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="pageTitle">yt-cap Settings</title>
+    <link rel="stylesheet" href="./options.css" />
+  </head>
+  <body>
+    <main class="page">
+      <h1 data-i18n="pageTitle">yt-cap Settings</h1>
+
+      <form id="settings-form" class="settings-form">
+        <label>
+          <span data-i18n="language">Language</span>
+          <select id="language" name="language">
+            <option value="auto" data-i18n="languageAuto">
+              Auto (follow browser)
+            </option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+          </select>
+        </label>
+
+        <label>
+          <span data-i18n="filenameFormat">File name format</span>
+          <select id="filename-format" name="filenameFormat">
+            <option value="titleId" data-i18n="filenameTitleId">
+              Title + video ID
+            </option>
+            <option value="title" data-i18n="filenameTitle">Title</option>
+            <option value="id" data-i18n="filenameId">Video ID only</option>
+          </select>
+        </label>
+
+        <p class="hint" data-i18n="filenameHint">
+          Characters that cannot be used in file names are replaced
+          automatically.
+        </p>
+
+        <label class="checkbox">
+          <input id="show-save-dialog" name="showSaveDialog" type="checkbox" />
+          <span data-i18n="showSaveDialog"
+            >Show the save dialog on download</span
+          >
+        </label>
+
+        <p class="hint" data-i18n="showSaveDialogHint">
+          When on, the browser asks where to save each time. When off, files go
+          straight to your downloads folder.
+        </p>
+
+        <div class="actions">
+          <button type="submit" data-i18n="save">Save</button>
+        </div>
+
+        <p id="status" class="status" role="status"></p>
+      </form>
+    </main>
+
+    <script type="module" src="../dist/options.js"></script>
+  </body>
+</html>

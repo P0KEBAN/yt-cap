@@ -1,0 +1,108 @@
+:root {
+  color-scheme: light dark;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f6f6f3;
+  color: #171717;
+  margin: 0;
+}
+
+.page {
+  margin: 0 auto;
+  max-width: 640px;
+  padding: 40px 24px;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 650;
+  margin: 0 0 24px;
+}
+
+.settings-form {
+  display: grid;
+  gap: 16px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+}
+
+label span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+input {
+  background: #fff;
+  border: 1px solid #c9c9c1;
+  border-radius: 6px;
+  box-sizing: border-box;
+  color: #171717;
+  font: inherit;
+  height: 38px;
+  padding: 7px 10px;
+}
+
+.hint {
+  color: #55554f;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+label.checkbox {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+label.checkbox span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+label.checkbox input {
+  height: auto;
+  margin: 0;
+  width: auto;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  background: #171717;
+  border: 1px solid #171717;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+  padding: 7px 12px;
+}
+
+button[type="button"] {
+  background: #fff;
+  color: #171717;
+}
+
+.status {
+  font-size: 13px;
+  min-height: 20px;
+  margin: 0;
+}
+
+.status[data-variant="error"] {
+  color: #a02121;
+}
+
+.status[data-variant="success"] {
+  color: #146038;
+}
