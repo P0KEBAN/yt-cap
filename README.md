@@ -11,7 +11,7 @@
 
 ---
 
-Press **`⌘⇧Y`** on any YouTube video page to preview and download the highest-quality thumbnail.
+Press **your shortcut key** on any YouTube video page to preview and download the highest-quality thumbnail.
 
 **[🇯🇵 日本語版 README はこちら](README.ja.md)**
 
@@ -24,10 +24,10 @@ Press **`⌘⇧Y`** on any YouTube video page to preview and download the highes
 | | Feature | Description |
 |:---|:---|:---|
 | 🖼️ | **Hi-res thumbnails** | Automatically resolves the best quality: `maxresdefault` → `sddefault` → `hqdefault` |
-| ⌨️ | **Keyboard shortcut** | `⌘⇧Y` / `Ctrl+Shift+Y` to instantly show the preview |
+| ⌨️ | **Keyboard shortcut** | Assign any key you like to instantly show the preview ([how to set it](#set-the-keyboard-shortcut)) |
 | 👁️ | **Preview before download** | Confirm the thumbnail, then `Enter` to download, `⌘/Ctrl+Enter` to choose where to save, or `Escape` to cancel |
 | 📝 | **Auto file naming** | Names files like `Video title_VIDEOID.jpg`; invalid characters are replaced automatically |
-| 🎯 | **Broad URL support** | Works on regular videos, Shorts, and `youtu.be` short links |
+| 🎯 | **Broad URL support** | Works on regular videos, Shorts, and live streams (`/live/`) |
 | 🔧 | **Settings page** | Configure language, file name format, and the default download folder |
 
 <br>
@@ -47,12 +47,20 @@ Chrome Extension (Manifest V3)
 
 ## 🚀 Setup
 
-### Prerequisites
+Works on Google Chrome and other Chromium-based browsers. There are two ways to install it.
 
-- [Node.js](https://nodejs.org/) installed
-- Google Chrome or any Chromium-based browser
+### A. Download the zip (easy)
 
-### Installation
+1. Download `yt-cap-vX.Y.Z.zip` from [Releases](https://github.com/P0KEBAN/yt-cap/releases/latest)
+2. Unzip it (you get a `yt-cap` folder)
+3. Continue to [Load into Chrome](#load-into-chrome) and select the unzipped `yt-cap` folder
+
+> [!IMPORTANT]
+> Chrome keeps loading the extension from the folder you selected. Put the unzipped `yt-cap` folder somewhere you will not delete or move it.
+
+### B. Build from source
+
+Requires [Node.js](https://nodejs.org/).
 
 ```bash
 # 1. Clone the repository
@@ -71,10 +79,24 @@ npm run build
 1. Open `chrome://extensions`
 2. Enable **Developer mode** (toggle in the top-right corner)
 3. Click **"Load unpacked"**
-4. Select the cloned folder
+4. Select the `yt-cap` folder (the unzipped folder or the cloned folder)
+5. Then set the keyboard shortcut as described below
 
 > [!TIP]
 > After making code changes, run `npm run build` and click the **reload button** on `chrome://extensions`.
+
+### Set the keyboard shortcut
+
+You assign the shortcut key yourself in Chrome's settings.
+
+1. Open `chrome://extensions/shortcuts` from the address bar
+2. Find **yt-cap** in the list
+3. Click the field next to "Preview and download the YouTube thumbnail" and press the key combination you want
+
+> [!NOTE]
+> The extension suggests `⌘⇧Y` (`Ctrl+Shift+Y` on Windows/Linux), but **Chrome may not assign it automatically** — for example when another extension or Chrome itself already uses that key. If nothing happens when you press the shortcut, check this page first.
+>
+> You can also use yt-cap without a shortcut by clicking its icon in the toolbar.
 
 <br>
 
@@ -87,7 +109,7 @@ npm run build
                                │
                                ▼
                 ┌──────────────────────────────┐
-                │   ⌘⇧Y  or  toolbar button    │
+                │  Shortcut or toolbar button   │
                 └──────────────┬───────────────┘
                                │
                                ▼
@@ -116,10 +138,7 @@ npm run build
    - **File name format**: `Title + video ID` / `Title` / `Video ID only`
    - **Default download folder**: `Downloads` saves to the browser downloads folder; subfolders such as `YouTube/Thumbnails` are created under it
 
-In the preview overlay, press **Enter** to save to the default download folder. Press **⌘+Enter** on macOS or **Ctrl+Enter** on Windows/Linux to choose the save location with the browser dialog.
-
-> [!NOTE]
-> If the shortcut doesn't work, go to `chrome://extensions/shortcuts` and manually set the shortcut for `yt-cap`. The `suggested_key` in the manifest is only a suggestion and may not be automatically assigned by Chrome.
+In the preview overlay, press **Enter** to save to the default download folder. Press **⌘+Enter** on macOS or **Ctrl+Enter** on Windows/Linux to choose the save location with the browser dialog. Press **Escape** or click outside the preview to close it.
 
 <br>
 
@@ -131,6 +150,8 @@ yt-cap/
 ├── 📦 package.json          … npm config & build scripts
 ├── ⚙️ tsconfig.json         … TypeScript configuration
 ├── 🎨 icons/                … Extension icons (16/48/128px)
+├── 📂 scripts/
+│   └── package.sh          … Builds the distributable zip
 ├── 📂 src/
 │   ├── background.ts       … Service Worker (download logic)
 │   ├── content.ts           … Content script (preview UI)
@@ -138,6 +159,7 @@ yt-cap/
 │   ├── options.html         … Options page HTML
 │   ├── options.ts           … Options page logic
 │   ├── options.css          … Options page styles
+│   ├── settings.ts          … Settings loading & normalization
 │   ├── overlay.css          … Preview overlay styles
 │   └── types.ts             … Type definitions
 └── 📂 dist/                 … Build output (generated)
@@ -153,6 +175,9 @@ npm run typecheck
 
 # Build
 npm run build
+
+# Create the distributable zip in release/ (also builds)
+npm run package
 ```
 
 <br>
