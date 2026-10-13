@@ -65,6 +65,8 @@
   ]);
   const OVERLAY_ID = "yt-cap-overlay";
   const CLOSE_EVENT = "yt-cap-close";
+  const ESCAPE_UNLOCK_DELAY_MS = 100;
+  const ESCAPE_UNLOCK_FALLBACK_MS = 3000;
   const KEY_EVENT_TYPES = ["keydown", "keypress", "keyup"] as const;
   const VIDEO_PATH_PREFIXES = ["/shorts/", "/live/", "/embed/"];
   const THUMBNAIL_QUALITIES = [
@@ -150,6 +152,8 @@
     overlay.showModal();
     lockEscapeKey();
 
+    let closingByEscape = false;
+
     const cleanup = (): void => {
       // 片付け済みなら何もしない（後から開いた別のプレビューを巻き込まないため）。
       if (!overlay.isConnected) {
@@ -160,7 +164,7 @@
         document.removeEventListener(type, onKey, true);
       }
 
-      unlockEscapeKey();
+      unlockEscapeKey(closingByEscape);
 
       // close() を呼ぶと、開く前にフォーカスがあった場所へブラウザが戻してくれる。
       overlay.close();
@@ -241,6 +245,7 @@
 
       if (event.key === "Escape") {
         event.preventDefault();
+        closingByEscape = true;
         cleanup();
         return;
       }
@@ -264,6 +269,7 @@
     // Escape などブラウザ側の操作で閉じられる場合も、同じ片付けを通す。
     overlay.addEventListener("cancel", (event) => {
       event.preventDefault();
+      closingByEscape = true;
       cleanup();
     });
     overlay.addEventListener("click", (event) => {
@@ -323,8 +329,43 @@
       });
   }
 
-  function unlockEscapeKey(): void {
-    getKeyboardLock()?.unlock?.();
+  function unlockEscapeKey(escapeIsDown: boolean): void {
+    const keyboard = getKeyboardLock();
+
+    if (!keyboard?.unlock) {
+      return;
+    }
+
+    if (!escapeIsDown || !document.fullscreenElement) {
+      keyboard.unlock();
+      return;
+    }
+
+    // Escape を押している最中にロックを外すと、キーを離したときの入力をブラウザが拾い、
+    // 全画面まで一緒に解除されてしまう。キーが離されるのを待ってから外す。
+    let released = false;
+
+    const release = (): void => {
+      if (released) {
+        return;
+      }
+
+      released = true;
+      document.removeEventListener("keyup", onKeyUp, true);
+      keyboard.unlock?.();
+    };
+
+    const onKeyUp = (event: KeyboardEvent): void => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      event.stopPropagation();
+      window.setTimeout(release, ESCAPE_UNLOCK_DELAY_MS);
+    };
+
+    document.addEventListener("keyup", onKeyUp, true);
+    window.setTimeout(release, ESCAPE_UNLOCK_FALLBACK_MS);
   }
 
   function restoreScroll(): void {
