@@ -19,6 +19,9 @@ Press **your shortcut key** on any YouTube video page to preview and download th
 
 </div>
 
+> [!NOTE]
+> **Want to save to Eagle?** There is a separate version, [**yt-cap-eagle**](https://github.com/P0KEBAN/yt-cap-eagle), that saves thumbnails directly to Eagle. Use that one if you manage your assets in Eagle.
+
 <br>
 
 ## ✨ Features
@@ -182,6 +185,15 @@ npm run build
 # Create the distributable zip in release/ (also builds)
 npm run package
 ```
+
+<br>
+
+## 🔀 Other Versions
+
+| | Saves to | Best for |
+|:---|:---|:---|
+| **yt-cap** (this repository) | The browser's downloads folder | People who want plain image files, without Eagle |
+| [**yt-cap-eagle**](https://github.com/P0KEBAN/yt-cap-eagle) | Your [Eagle](https://eagle.cool/) library | People who manage assets in Eagle |
 
 <br>
 

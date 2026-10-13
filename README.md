@@ -19,6 +19,9 @@ YouTube動画ページを閲覧中に **ショートカットキー** を押す�
 
 </div>
 
+> [!NOTE]
+> **Eagleに保存したい方へ:** サムネイルを直接Eagleに保存する別バージョン [**yt-cap-eagle**](https://github.com/P0KEBAN/yt-cap-eagle) があります。Eagleで素材を管理している場合はそちらをどうぞ。
+
 <br>
 
 ## ✨ 特徴
@@ -183,6 +186,15 @@ npm run build
 # 配布用zipを release/ に作成（ビルドも行う）
 npm run package
 ```
+
+<br>
+
+## 🔀 別バージョン
+
+| | 保存先 | こんな方に |
+|:---|:---|:---|
+| **yt-cap**（このリポジトリ） | ブラウザのダウンロードフォルダ | Eagleを使わず、画像ファイルとして保存したい方 |
+| [**yt-cap-eagle**](https://github.com/P0KEBAN/yt-cap-eagle) | [Eagle](https://eagle.cool/) のライブラリ | Eagleで素材を管理している方 |
 
 <br>
 
