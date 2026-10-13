@@ -148,6 +148,7 @@
     document.documentElement.append(overlay);
     document.documentElement.classList.add("yt-cap-scroll-lock");
     overlay.showModal();
+    lockEscapeKey();
 
     const cleanup = (): void => {
       // 片付け済みなら何もしない（後から開いた別のプレビューを巻き込まないため）。
@@ -158,6 +159,8 @@
       for (const type of KEY_EVENT_TYPES) {
         document.removeEventListener(type, onKey, true);
       }
+
+      unlockEscapeKey();
 
       // close() を呼ぶと、開く前にフォーカスがあった場所へブラウザが戻してくれる。
       overlay.close();
@@ -294,6 +297,34 @@
       metadata.videoId,
       THUMBNAIL_QUALITIES[state.qualityIndex],
     );
+  }
+
+  // 全画面中の Escape は通常ブラウザが先に受け取り、ページに届く前に全画面を解除してしまう。
+  // Keyboard Lock API で Escape をページ側に届けてもらい、先にプレビューだけを閉じられるようにする。
+  // 未対応のブラウザや拒否された場合は従来どおり（全画面の解除が先）になる。
+  type KeyboardLock = {
+    lock?: (keyCodes: string[]) => Promise<void>;
+    unlock?: () => void;
+  };
+
+  function getKeyboardLock(): KeyboardLock | undefined {
+    return (navigator as Navigator & { keyboard?: KeyboardLock }).keyboard;
+  }
+
+  function lockEscapeKey(): void {
+    if (!document.fullscreenElement) {
+      return;
+    }
+
+    void getKeyboardLock()
+      ?.lock?.(["Escape"])
+      .catch(() => {
+        // ロックできなくてもプレビュー自体は使える。
+      });
+  }
+
+  function unlockEscapeKey(): void {
+    getKeyboardLock()?.unlock?.();
   }
 
   function restoreScroll(): void {
