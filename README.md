@@ -1,198 +1,201 @@
 <div align="center">
 
-# 🎬 yt-cap
+<img src="icons/icon-128.png" alt="yt-cap" width="128" height="128">
 
-**Preview and download YouTube thumbnails with a single keystroke**
+# yt-cap
+
+**YouTubeサムネイルをワンキーでプレビュー＆ダウンロードするChrome拡張**
 
 [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-34A853?style=for-the-badge&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
+**日本語** | [English](README.en.md)
+
 ---
 
-Press **your shortcut key** on any YouTube video page to preview and download the highest-quality thumbnail.
-
-**[🇯🇵 日本語版 README はこちら](README.ja.md)**
+YouTube動画ページを閲覧中に **ショートカットキー** を押すだけで、最高画質のサムネイルをプレビュー＆ダウンロードできます。
 
 </div>
 
 <br>
 
-## ✨ Features
+## ✨ 特徴
 
-| | Feature | Description |
+| | 機能 | 説明 |
 |:---|:---|:---|
-| 🖼️ | **Hi-res thumbnails** | Automatically resolves the best quality: `maxresdefault` → `sddefault` → `hqdefault` |
-| ⌨️ | **Keyboard shortcut** | Assign any key you like to instantly show the preview ([how to set it](#set-the-keyboard-shortcut)) |
-| 👁️ | **Preview before download** | Confirm the thumbnail, then `Enter` to download, `⌘/Ctrl+Enter` to choose where to save, or `Escape` to cancel |
-| 📝 | **Auto file naming** | Names files like `Video title_VIDEOID.jpg`; invalid characters are replaced automatically |
-| 🎯 | **Broad URL support** | Works on regular videos, Shorts, and live streams (`/live/`) |
-| 🔧 | **Settings page** | Configure language, file name format, and the default download folder |
+| 🖼️ | **高画質サムネイル取得** | `maxresdefault` → `sddefault` → `hqdefault` の順で最適な画質を自動解決 |
+| ⌨️ | **キーボードショートカット** | 好きなキーを割り当てて、プレビューを即表示（[設定方法](#ショートカットキーの設定)） |
+| 👁️ | **プレビュー付きダウンロード** | 保存前にサムネイルを確認、`Enter` で保存・`⌘/Ctrl+Enter` で保存先選択・`Escape` でキャンセル |
+| 📝 | **ファイル名の自動生成** | `動画タイトル_動画ID.jpg` など、設定した形式で命名（使えない文字は自動置換） |
+| 🎯 | **幅広いURL対応** | 通常の動画ページ、Shorts、ライブ配信（`/live/`）に対応 |
+| 🔧 | **設定画面** | 言語・ファイル名形式・デフォルトのダウンロード場所を設定可能 |
 
 <br>
 
-## 🔧 Tech Stack
+## 🔧 技術スタック
 
 ```
 Chrome Extension (Manifest V3)
-├── TypeScript 5.4          … Type-safe development
-├── Chrome Downloads API    … Thumbnail download
-├── Chrome Scripting API    … Content script injection
-├── Chrome Storage API      … Persistent settings
-└── Chrome Notifications    … Download completion alerts
+├── TypeScript 5.4          … 型安全な開発
+├── Chrome Downloads API    … サムネイルのダウンロード
+├── Chrome Scripting API    … コンテンツスクリプト注入
+├── Chrome Storage API      … 設定の永続化
+└── Chrome Notifications    … ダウンロード完了通知
 ```
 
 <br>
 
-## 🚀 Setup
+## 🚀 セットアップ
 
-Works on Google Chrome and other Chromium-based browsers. There are two ways to install it.
+Google Chrome または Chromium系ブラウザで使えます。入れ方は2通りあります。
 
-### A. Download the zip (easy)
+### A. zipをダウンロードして使う（かんたん）
 
-1. Download `yt-cap-vX.Y.Z.zip` from [Releases](https://github.com/P0KEBAN/yt-cap/releases/latest)
-2. Unzip it (you get a `yt-cap` folder)
-3. Continue to [Load into Chrome](#load-into-chrome) and select the unzipped `yt-cap` folder
+1. [Releases](https://github.com/P0KEBAN/yt-cap/releases/latest) から `yt-cap-vX.Y.Z.zip` をダウンロードする
+2. zipを展開する（`yt-cap` フォルダができます）
+3. 下の「[Chromeへの登録](#chromeへの登録)」に進み、展開した `yt-cap` フォルダを選ぶ
 
 > [!IMPORTANT]
-> Chrome keeps loading the extension from the folder you selected. Put the unzipped `yt-cap` folder somewhere you will not delete or move it.
+> Chromeは選んだフォルダをその場所から読み込み続けます。展開した `yt-cap` フォルダは、消したり移動したりしない場所に置いてください。
 
-### B. Build from source
+### B. ソースコードからビルドする
 
-Requires [Node.js](https://nodejs.org/).
+[Node.js](https://nodejs.org/) が必要です。
 
 ```bash
-# 1. Clone the repository
+# 1. リポジトリをクローン
 git clone https://github.com/P0KEBAN/yt-cap.git
 cd yt-cap
 
-# 2. Install dependencies
+# 2. 依存関係をインストール
 npm install
 
-# 3. Build TypeScript
+# 3. TypeScriptをビルド
 npm run build
 ```
 
-### Load into Chrome
+### Chromeへの登録
 
-1. Open `chrome://extensions`
-2. Enable **Developer mode** (toggle in the top-right corner)
-3. Click **"Load unpacked"**
-4. Select the `yt-cap` folder (the unzipped folder or the cloned folder)
-5. Then set the keyboard shortcut as described below
+1. `chrome://extensions` を開く
+2. **デベロッパーモード** を有効化（右上のトグル）
+3. **「パッケージ化されていない拡張機能を読み込む」** をクリック
+4. `yt-cap` フォルダ（zipを展開したフォルダ、またはクローンしたフォルダ）を選択
+5. 続けて、下の「ショートカットキーの設定」を行う
 
 > [!TIP]
-> After making code changes, run `npm run build` and click the **reload button** on `chrome://extensions`.
+> コードを変更した場合は `npm run build` を実行し、`chrome://extensions` で拡張機能の **更新ボタン** を押してください。
 
-### Set the keyboard shortcut
+### ショートカットキーの設定
 
-You assign the shortcut key yourself in Chrome's settings.
+ショートカットキーは、Chromeの設定画面で自分の好きなキーを割り当てて使います。
 
-1. Open `chrome://extensions/shortcuts` from the address bar (or click **"Set shortcut"** on the yt-cap settings page)
-2. Find **yt-cap** in the list
-3. Click the field next to "Preview and download the YouTube thumbnail" and press the key combination you want
+1. アドレスバーに `chrome://extensions/shortcuts` と入力して開く（yt-cap の設定画面にある **「ショートカットを設定」** ボタンからも開けます）
+2. 一覧から **yt-cap** を探す
+3. 「Preview and download the YouTube thumbnail」の入力欄をクリックし、使いたいキーの組み合わせを押す
 
 > [!NOTE]
-> The extension suggests `⌘⇧Y` (`Ctrl+Shift+Y` on Windows/Linux), but **Chrome may not assign it automatically** — for example when another extension or Chrome itself already uses that key. If nothing happens when you press the shortcut, check this page first.
+> 拡張機能は `⌘⇧Y`（Windows/Linuxは `Ctrl+Shift+Y`）を候補として申請していますが、**自動では割り当てられないことがあります**（ほかの拡張機能やChrome自体が同じキーを使っている場合など）。ショートカットを押しても何も起きないときは、まずこの画面で割り当てを確認してください。
 >
-> You can also use yt-cap without a shortcut by clicking its icon in the toolbar.
+> ショートカットを設定しなくても、ツールバーの yt-cap アイコンをクリックすれば同じように使えます。
 
 <br>
 
-## 📖 Usage
+## 📖 使い方
 
 ```
                 ┌──────────────────────────────┐
-                │   Open a YouTube video page   │
+                │    YouTube動画ページを開く      │
                 └──────────────┬───────────────┘
                                │
                                ▼
                 ┌──────────────────────────────┐
-                │  Shortcut or toolbar button   │
+                │ ショートカット or ツールバーボタン │
                 └──────────────┬───────────────┘
                                │
                                ▼
                 ┌──────────────────────────────┐
-                │   Thumbnail preview appears   │
+                │   サムネイルプレビューが表示     │
                 └──────────────┬───────────────┘
                                │
                     ┌──────────┴──────────┐
                     ▼                     ▼
           ┌──────────────────┐   ┌─────────────────┐
-          │ Enter: Download   │   │  Escape: Cancel │
+          │ Enter:           │   │  Escape: 取消   │
+          │   ダウンロード    │   │                 │
           └─────────┬────────┘   └─────────────────┘
                     │
                     ▼
           ┌──────────────────┐
-          │ Ctrl/⌘+Enter:    │
-          │ Choose location  │
+          │ ⌘/Ctrl+Enter:   │
+          │   保存先を選択    │
           └──────────────────┘
 ```
 
-### Settings
+### 設定
 
-1. **Right-click** the extension icon → select **"Options"**
-2. The current shortcut key is shown at the top ("Not set" if none is assigned)
-3. You can configure:
-   - **Language**: Auto / English / 日本語
-   - **File name format**: `Title + video ID` / `Title` / `Video ID only`
-   - **Default download folder**: `Downloads` saves to the browser downloads folder; subfolders such as `YouTube/Thumbnails` are created under it
+1. 拡張機能アイコンを **右クリック** →「**オプション**」を選択
+2. いちばん上に、現在のショートカットキーが表示されます（割り当てがなければ「未設定」）
+3. 以下を設定できます
+   - **言語**: 自動 / English / 日本語
+   - **ファイル名の形式**: `タイトル＋動画ID` / `タイトル` / `動画IDのみ`
+   - **デフォルトのダウンロード場所**: `Downloads` はブラウザのダウンロードフォルダ直下、`YouTube/Thumbnails` のようなサブフォルダはその配下に作成されます
 
-In the preview overlay, press **Enter** to save to the default download folder. Press **⌘+Enter** on macOS or **Ctrl+Enter** on Windows/Linux to choose the save location with the browser dialog. Press **Escape** or click outside the preview to close it.
+プレビュー表示中は **Enter** でデフォルトのダウンロード場所に保存します。macOS は **⌘+Enter**、Windows/Linux は **Ctrl+Enter** で保存ダイアログを開き、保存先を選べます。**Escape** またはプレビューの外側をクリックすると閉じます。
 
 <br>
 
-## 📁 Project Structure
+## 📁 プロジェクト構成
 
 ```
 yt-cap/
-├── 📄 manifest.json        … Chrome extension manifest (MV3)
-├── 📦 package.json          … npm config & build scripts
-├── ⚙️ tsconfig.json         … TypeScript configuration
-├── 🎨 icons/                … Extension icons (16/48/128px)
+├── 📄 manifest.json        … Chrome拡張のマニフェスト (MV3)
+├── 📦 package.json          … npm設定・ビルドスクリプト
+├── ⚙️ tsconfig.json         … TypeScript設定
+├── 🎨 icons/                … 拡張機能アイコン (16/48/128px)
 ├── 📂 scripts/
-│   └── package.sh          … Builds the distributable zip
+│   └── package.sh          … 配布用zipの作成
 ├── 📂 src/
-│   ├── background.ts       … Service Worker (download logic)
-│   ├── content.ts           … Content script (preview UI)
-│   ├── i18n.ts              … Internationalization (en/ja)
-│   ├── options.html         … Options page HTML
-│   ├── options.ts           … Options page logic
-│   ├── options.css          … Options page styles
-│   ├── settings.ts          … Settings loading & normalization
-│   ├── overlay.css          … Preview overlay styles
-│   └── types.ts             … Type definitions
-└── 📂 dist/                 … Build output (generated)
+│   ├── background.ts       … Service Worker (ダウンロード処理)
+│   ├── content.ts           … コンテンツスクリプト (プレビューUI)
+│   ├── i18n.ts              … 国際化 (en/ja)
+│   ├── options.html         … 設定画面HTML
+│   ├── options.ts           … 設定画面ロジック
+│   ├── options.css          … 設定画面スタイル
+│   ├── settings.ts          … 設定の読み込み・正規化
+│   ├── overlay.css          … プレビューオーバーレイスタイル
+│   └── types.ts             … 型定義
+└── 📂 dist/                 … ビルド出力 (生成ファイル)
 ```
 
 <br>
 
-## 🛠️ Development
+## 🛠️ 開発
 
 ```bash
-# Type-check only
+# 型チェックのみ実行
 npm run typecheck
 
-# Build
+# ビルド
 npm run build
 
-# Create the distributable zip in release/ (also builds)
+# 配布用zipを release/ に作成（ビルドも行う）
 npm run package
 ```
 
 <br>
 
-## ⚠️ Known Limitations
+## ⚠️ 既知の制限事項
 
-- Only works on YouTube pages
-- Thumbnails may not be available for private or age-restricted videos
+- YouTube以外のサイトでは動作しません
+- プライベート動画・年齢制限付き動画はサムネイルが取得できない場合があります
 
 <br>
 
-## 📄 License
+## 📄 ライセンス
 
-This project is licensed under the [MIT License](LICENSE).
+このプロジェクトは [MIT License](LICENSE) の下で公開されています。
 
 <br>
 
@@ -200,6 +203,6 @@ This project is licensed under the [MIT License](LICENSE).
 
 <div align="center">
 
-**[⬆ Back to top](#-yt-cap)**
+**[⬆ トップへ戻る](#yt-cap)**
 
 </div>
