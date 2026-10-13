@@ -10,6 +10,23 @@
     <main class="page">
       <h1 data-i18n="pageTitle">yt-cap Settings</h1>
 
+      <section class="settings-form shortcut-card">
+        <div class="field">
+          <span class="field-label" data-i18n="shortcut">Keyboard shortcut</span>
+          <div class="shortcut-row">
+            <output id="shortcut-value" class="shortcut-value"></output>
+            <button id="open-shortcuts" type="button" data-i18n="shortcutChange">
+              Set shortcut
+            </button>
+          </div>
+        </div>
+
+        <p class="hint" data-i18n="shortcutHint">
+          Shortcut keys are changed in the browser's settings. Even without a
+          shortcut, you can use yt-cap by clicking its icon in the toolbar.
+        </p>
+      </section>
+
       <form id="settings-form" class="settings-form">
         <label>
           <span data-i18n="language">Language</span>

@@ -5,6 +5,10 @@ export type Locale = "en" | "ja";
 export type Messages = {
   // options page
   pageTitle: string;
+  shortcut: string;
+  shortcutNotSet: string;
+  shortcutChange: string;
+  shortcutHint: string;
   language: string;
   languageAuto: string;
   filenameFormat: string;
@@ -34,6 +38,11 @@ export type Messages = {
 export const MESSAGES: Record<Locale, Messages> = {
   en: {
     pageTitle: "yt-cap Settings",
+    shortcut: "Keyboard shortcut",
+    shortcutNotSet: "Not set",
+    shortcutChange: "Set shortcut",
+    shortcutHint:
+      "Shortcut keys are changed in the browser's settings. Even without a shortcut, you can use yt-cap by clicking its icon in the toolbar.",
     language: "Language",
     languageAuto: "Auto (follow browser)",
     filenameFormat: "File name format",
@@ -62,6 +71,11 @@ export const MESSAGES: Record<Locale, Messages> = {
   },
   ja: {
     pageTitle: "yt-cap 設定",
+    shortcut: "ショートカットキー",
+    shortcutNotSet: "未設定",
+    shortcutChange: "ショートカットを設定",
+    shortcutHint:
+      "ショートカットキーはブラウザの設定画面で変更します。未設定でも、ツールバーの yt-cap アイコンをクリックすれば同じように使えます。",
     language: "言語",
     languageAuto: "自動（ブラウザに合わせる）",
     filenameFormat: "ファイル名の形式",

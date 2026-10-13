@@ -89,7 +89,7 @@ npm run build
 
 You assign the shortcut key yourself in Chrome's settings.
 
-1. Open `chrome://extensions/shortcuts` from the address bar
+1. Open `chrome://extensions/shortcuts` from the address bar (or click **"Set shortcut"** on the yt-cap settings page)
 2. Find **yt-cap** in the list
 3. Click the field next to "Preview and download the YouTube thumbnail" and press the key combination you want
 
@@ -133,7 +133,8 @@ You assign the shortcut key yourself in Chrome's settings.
 ### Settings
 
 1. **Right-click** the extension icon → select **"Options"**
-2. You can configure:
+2. The current shortcut key is shown at the top ("Not set" if none is assigned)
+3. You can configure:
    - **Language**: Auto / English / 日本語
    - **File name format**: `Title + video ID` / `Title` / `Video ID only`
    - **Default download folder**: `Downloads` saves to the browser downloads folder; subfolders such as `YouTube/Thumbnails` are created under it

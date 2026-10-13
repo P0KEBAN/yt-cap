@@ -55,7 +55,8 @@ label {
   gap: 8px;
 }
 
-label span {
+label span,
+.field-label {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -93,6 +94,34 @@ input[type="text"]:focus-visible {
   border-color: var(--focus);
   outline: 2px solid color-mix(in srgb, var(--focus) 35%, transparent);
   outline-offset: 1px;
+}
+
+.shortcut-card {
+  margin-bottom: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.shortcut-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.shortcut-value {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.shortcut-value[data-state="unset"] {
+  color: var(--error);
+  letter-spacing: 0;
 }
 
 .hint {

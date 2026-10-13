@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "yt-cap",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Preview the current YouTube video's thumbnail and download it.",
   "permissions": ["activeTab", "scripting", "storage", "downloads", "notifications"],
   "host_permissions": [
