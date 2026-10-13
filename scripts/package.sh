@@ -14,6 +14,7 @@ npm run build
 
 mkdir -p "$staging/src" "$staging/icons"
 cp manifest.json LICENSE "$staging/"
+cp -R _locales "$staging/_locales"
 cp -R dist "$staging/dist"
 cp src/options.html src/options.css src/overlay.css "$staging/src/"
 cp icons/icon-16.png icons/icon-48.png icons/icon-128.png "$staging/icons/"
