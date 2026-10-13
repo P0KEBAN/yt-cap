@@ -26,6 +26,7 @@
     | {
         ok: false;
         error: string;
+        canceled?: boolean;
       };
 
   // このスクリプトは executeScript で通常スクリプトとして注入されるため import が使えない。
@@ -63,6 +64,8 @@
     "m.youtube.com",
   ]);
   const OVERLAY_ID = "yt-cap-overlay";
+  const CLOSE_EVENT = "yt-cap-close";
+  const VIDEO_PATH_PREFIXES = ["/shorts/", "/live/", "/embed/"];
   const THUMBNAIL_QUALITIES = [
     "maxresdefault",
     "sddefault",
@@ -97,16 +100,15 @@
       return setting;
     }
 
-    return navigator.language.toLowerCase().startsWith("ja") ? "ja" : "en";
+    return chrome.i18n.getUILanguage().toLowerCase().startsWith("ja")
+      ? "ja"
+      : "en";
   }
 
   function showThumbnailOverlay(m: Record<string, string>): void {
-    const existing = document.getElementById(OVERLAY_ID);
-
-    if (existing) {
-      existing.remove();
-      restoreScroll();
-    }
+    // 表示中にもう一度呼ばれた場合、前回分のキー操作の受け付けも含めて片付けさせる。
+    // 要素を消すだけだと前回のキーリスナーが残り、Enter 1回で二重に保存されてしまう。
+    document.getElementById(OVERLAY_ID)?.dispatchEvent(new Event(CLOSE_EVENT));
 
     let metadata: VideoMetadata;
 
@@ -145,6 +147,11 @@
     document.documentElement.classList.add("yt-cap-scroll-lock");
 
     const cleanup = (): void => {
+      // 片付け済みなら何もしない（後から開いた別のプレビューを巻き込まないため）。
+      if (!overlay.isConnected) {
+        return;
+      }
+
       document.removeEventListener("keydown", onKeyDown, true);
       overlay.remove();
       restoreScroll();
@@ -179,6 +186,11 @@
         });
 
         if (!response.ok) {
+          if (response.canceled) {
+            setStatus(formatDownloadHint(m.downloadHint));
+            return;
+          }
+
           setStatus(response.error, "error");
           return;
         }
@@ -210,6 +222,7 @@
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         event.preventDefault();
+        event.stopPropagation();
         cleanup();
         return;
       }
@@ -225,9 +238,11 @@
       }
 
       event.preventDefault();
+      event.stopPropagation();
       void download(useSaveDialog);
     };
 
+    overlay.addEventListener(CLOSE_EVENT, cleanup);
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) {
         cleanup();
@@ -288,7 +303,7 @@
 
     if (
       YOUTUBE_WATCH_HOSTS.has(url.hostname) &&
-      url.pathname.startsWith("/shorts/")
+      VIDEO_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))
     ) {
       return normalizeVideoId(url.pathname.split("/")[2]);
     }
@@ -368,18 +383,25 @@
   }
 
   function extractTitle(): string {
-    const heading =
-      document.querySelector<HTMLHeadingElement>("h1.ytd-watch-metadata") ??
-      document.querySelector<HTMLHeadingElement>("h1.title");
-    const headingText = heading?.textContent?.trim();
+    // YouTube はページを移動しても見出し要素を非表示のまま残すため、
+    // 表示中の見出しだけを使う（Shorts などでは前の動画のタイトルが残っている）。
+    const headingText = Array.from(
+      document.querySelectorAll<HTMLHeadingElement>(
+        "h1.ytd-watch-metadata, h1.title",
+      ),
+    )
+      .find((heading) => heading.getClientRects().length > 0)
+      ?.textContent?.trim();
 
     if (headingText) {
       return headingText;
     }
 
     return (
-      document.title.replace(/\s*-\s*YouTube\s*$/i, "").trim() ||
-      "YouTube thumbnail"
+      document.title
+        .replace(/^\(\d+\+?\)\s*/, "")
+        .replace(/\s*-\s*YouTube\s*$/i, "")
+        .trim() || "YouTube thumbnail"
     );
   }
 

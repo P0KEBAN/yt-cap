@@ -20,6 +20,8 @@ export type DownloadThumbnailResponse =
   | {
       ok: false;
       error: string;
+      // ユーザーが保存ダイアログを閉じた場合は true。エラー表示にしない。
+      canceled?: boolean;
     };
 
 export type LanguageSetting = "auto" | "en" | "ja";

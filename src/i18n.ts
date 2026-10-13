@@ -16,6 +16,7 @@ export type Messages = {
   defaultDownloadFolderHint: string;
   save: string;
   saved: string;
+  saveFailed: string;
   // overlay (content script)
   loading: string;
   thumbnailLoading: string;
@@ -46,6 +47,7 @@ export const MESSAGES: Record<Locale, Messages> = {
       "Use Downloads or leave blank to save at the root of the browser downloads folder. Subfolders are created under it.",
     save: "Save",
     saved: "Saved",
+    saveFailed: "Could not save the settings",
     loading: "Loading...",
     thumbnailLoading: "Thumbnail is still loading",
     downloading: "Downloading...",
@@ -72,6 +74,7 @@ export const MESSAGES: Record<Locale, Messages> = {
       "Downloads または空欄ならブラウザのダウンロードフォルダ直下に保存します。サブフォルダはその配下に作成されます。",
     save: "保存",
     saved: "保存しました",
+    saveFailed: "設定を保存できませんでした",
     loading: "読み込み中...",
     thumbnailLoading: "サムネイルを読み込み中です",
     downloading: "ダウンロード中...",

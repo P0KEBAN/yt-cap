@@ -4,26 +4,23 @@ import {
   type Locale,
   type Messages,
 } from "./i18n.js";
+import { DEFAULT_SETTINGS, loadSettings } from "./settings.js";
 import type {
   DownloadRequest,
   DownloadThumbnailMessage,
   DownloadThumbnailResponse,
   FilenameFormat,
-  LanguageSetting,
-  Settings,
 } from "./types";
-
-const DEFAULT_SETTINGS: Settings = {
-  language: "auto",
-  filenameFormat: "titleId",
-  defaultDownloadFolder: "",
-};
 
 // ファイル名に使えない・避けたい文字。Windows禁止文字＋制御文字を含む。
 const INVALID_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1F]/g;
-const INVALID_FOLDER_CHARS = /[<>:"\\|?*\x00-\x1F]/g;
-const MAX_FILENAME_BASE_LENGTH = 120;
+// 多くのファイルシステムはファイル名を255バイトまでに制限している。
+// 拡張子や重複時の連番 " (1)" の余裕を残して、拡張子を除いた部分をこの長さに収める。
+const MAX_FILENAME_BASE_BYTES = 200;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
+
+// 保存ダイアログを閉じたなど、ユーザー自身が保存をやめた場合。失敗とは区別して扱う。
+class DownloadCanceledError extends Error {}
 
 chrome.action.onClicked.addListener((tab) => {
   void injectContentScript(tab);
@@ -59,6 +56,7 @@ chrome.runtime.onMessage.addListener(
         sendResponse({
           ok: false,
           error: toUserFacingError(error, locale),
+          canceled: error instanceof DownloadCanceledError,
         });
       }
     })();
@@ -128,17 +126,24 @@ async function downloadThumbnail(
     settings.defaultDownloadFolder,
   );
 
+  let downloadId: number;
+
   try {
-    const downloadId = await chrome.downloads.download({
+    downloadId = await chrome.downloads.download({
       url: thumbnailUrl,
       filename,
       saveAs: request.useSaveDialog === true,
     });
-    await waitForDownload(downloadId, m);
   } catch (error) {
-    throw new Error(toDownloadErrorMessage(error, m));
+    if (isUserCancelMessage(error)) {
+      throw new DownloadCanceledError();
+    }
+
+    console.warn("yt-cap: ダウンロードを開始できませんでした", error);
+    throw new Error(m.downloadFailed);
   }
 
+  await waitForDownload(downloadId, m);
   await notify(m.downloadedThumbnail);
   return thumbnailUrl;
 }
@@ -156,7 +161,7 @@ function waitForDownload(downloadId: number, m: Messages): Promise<void> {
       chrome.downloads.onChanged.removeListener(onChanged);
     };
 
-    const finish = (result: "complete" | "error"): void => {
+    const finish = (result: "complete" | "canceled" | "error"): void => {
       if (settled) {
         return;
       }
@@ -169,17 +174,24 @@ function waitForDownload(downloadId: number, m: Messages): Promise<void> {
         return;
       }
 
-      reject(new Error(m.downloadFailed));
+      reject(
+        result === "canceled"
+          ? new DownloadCanceledError()
+          : new Error(m.downloadFailed),
+      );
     };
 
-    const handleState = (state: string | undefined): void => {
+    const handleState = (
+      state: string | undefined,
+      error: string | undefined,
+    ): void => {
       if (state === "complete") {
         finish("complete");
         return;
       }
 
       if (state === "interrupted") {
-        finish("error");
+        finish(error === "USER_CANCELED" ? "canceled" : "error");
       }
     };
 
@@ -188,7 +200,7 @@ function waitForDownload(downloadId: number, m: Messages): Promise<void> {
         return;
       }
 
-      handleState(delta.state?.current);
+      handleState(delta.state?.current, delta.error?.current);
     };
 
     chrome.downloads.onChanged.addListener(onChanged);
@@ -196,67 +208,12 @@ function waitForDownload(downloadId: number, m: Messages): Promise<void> {
     void chrome.downloads
       .search({ id: downloadId })
       .then(([item]) => {
-        handleState(item?.state);
+        handleState(item?.state, item?.error);
       })
       .catch(() => {
         finish("error");
       });
   });
-}
-
-async function loadSettings(): Promise<Settings> {
-  const saved = await chrome.storage.sync.get(DEFAULT_SETTINGS);
-
-  return {
-    language: normalizeLanguage(saved.language),
-    filenameFormat: normalizeFilenameFormat(saved.filenameFormat),
-    defaultDownloadFolder: normalizeDownloadFolder(
-      saved.defaultDownloadFolder,
-    ),
-  };
-}
-
-function normalizeLanguage(value: unknown): LanguageSetting {
-  return value === "en" || value === "ja" || value === "auto"
-    ? value
-    : DEFAULT_SETTINGS.language;
-}
-
-function normalizeFilenameFormat(value: unknown): FilenameFormat {
-  return value === "title" || value === "titleId" || value === "id"
-    ? value
-    : DEFAULT_SETTINGS.filenameFormat;
-}
-
-function normalizeDownloadFolder(value: unknown): string {
-  if (typeof value !== "string") {
-    return DEFAULT_SETTINGS.defaultDownloadFolder;
-  }
-
-  const normalized = value.trim().replace(/\\/g, "/");
-  const segments = normalized
-    .split("/")
-    .map((segment) => sanitizeFolderSegment(segment))
-    .filter(Boolean);
-
-  if (
-    segments[0]?.toLowerCase() === "downloads" ||
-    segments[0] === "ダウンロード"
-  ) {
-    segments.shift();
-  }
-
-  return segments.join("/");
-}
-
-function sanitizeFolderSegment(value: string): string {
-  const sanitized = value
-    .replace(INVALID_FOLDER_CHARS, "_")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/^\.+$/, "");
-
-  return sanitized === "." || sanitized === ".." ? "" : sanitized;
 }
 
 /**
@@ -282,11 +239,15 @@ function buildFilename(
       break;
     case "titleId":
     default:
-      base = `${safeTitle}_${videoId}`;
+      // 長いタイトルでも動画IDが切り落とされないよう、タイトル側だけを詰める。
+      base = `${truncate(
+        safeTitle,
+        MAX_FILENAME_BASE_BYTES - byteLength(videoId) - 1,
+      )}_${videoId}`;
       break;
   }
 
-  return `${truncate(base, MAX_FILENAME_BASE_LENGTH)}.${extension}`;
+  return `${truncate(base, MAX_FILENAME_BASE_BYTES)}.${extension}`;
 }
 
 function buildDownloadPath(filename: string, folder: string): string {
@@ -303,8 +264,30 @@ function sanitizeFilenamePart(value: string): string {
     .trim();
 }
 
-function truncate(value: string, maxLength: number): string {
-  return value.length > maxLength ? value.slice(0, maxLength).trim() : value;
+function truncate(value: string, maxBytes: number): string {
+  if (byteLength(value) <= maxBytes) {
+    return value;
+  }
+
+  // 絵文字などを途中で切って壊れた文字にしないよう、1文字ずつ収まる範囲まで足していく。
+  let result = "";
+  let bytes = 0;
+
+  for (const char of value) {
+    bytes += byteLength(char);
+
+    if (bytes > maxBytes) {
+      break;
+    }
+
+    result += char;
+  }
+
+  return result.trim();
+}
+
+function byteLength(value: string): number {
+  return new TextEncoder().encode(value).length;
 }
 
 function extractExtension(url: string): string {
@@ -322,12 +305,8 @@ function extractExtension(url: string): string {
   return "jpg";
 }
 
-function toDownloadErrorMessage(error: unknown, m: Messages): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  return m.downloadFailed;
+function isUserCancelMessage(error: unknown): boolean {
+  return error instanceof Error && /cancell?ed/i.test(error.message);
 }
 
 async function notify(message: string): Promise<void> {

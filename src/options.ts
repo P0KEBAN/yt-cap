@@ -4,13 +4,13 @@ import {
   type Locale,
   type Messages,
 } from "./i18n.js";
-import type { FilenameFormat, LanguageSetting, Settings } from "./types";
-
-const DEFAULT_SETTINGS: Settings = {
-  language: "auto",
-  filenameFormat: "titleId",
-  defaultDownloadFolder: "",
-};
+import {
+  loadSettings,
+  normalizeDownloadFolder,
+  normalizeFilenameFormat,
+  normalizeLanguage,
+} from "./settings.js";
+import type { LanguageSetting, Settings } from "./types";
 
 const form = requireElement<HTMLFormElement>("#settings-form");
 const languageSelect = requireElement<HTMLSelectElement>("#language");
@@ -47,7 +47,7 @@ async function initialize(): Promise<void> {
 }
 
 function applyLanguage(setting: LanguageSetting): void {
-  const locale = resolveLocale(setting, navigator.language);
+  const locale = resolveLocale(setting, chrome.i18n.getUILanguage());
   messages = getMessages(locale);
   translateDocument(locale);
 }
@@ -72,22 +72,18 @@ function translateDocument(locale: Locale): void {
   document.title = m.pageTitle;
 }
 
-async function loadSettings(): Promise<Settings> {
-  const saved = await chrome.storage.sync.get(DEFAULT_SETTINGS);
-
-  return {
-    language: normalizeLanguage(saved.language),
-    filenameFormat: normalizeFilenameFormat(saved.filenameFormat),
-    defaultDownloadFolder: normalizeDownloadFolder(
-      saved.defaultDownloadFolder,
-    ),
-  };
-}
-
 async function saveSettings(): Promise<void> {
   const settings = readFormSettings();
-  await chrome.storage.sync.set(settings);
-  await chrome.storage.sync.remove("showSaveDialog");
+
+  try {
+    await chrome.storage.sync.set(settings);
+    await chrome.storage.sync.remove("showSaveDialog");
+  } catch (error) {
+    console.warn("yt-cap: 設定を保存できませんでした", error);
+    setStatus(messages.saveFailed, "error");
+    return;
+  }
+
   defaultDownloadFolderInput.value = formatDownloadFolderForForm(
     settings.defaultDownloadFolder,
   );
@@ -103,49 +99,6 @@ function readFormSettings(): Settings {
       defaultDownloadFolderInput.value,
     ),
   };
-}
-
-function normalizeLanguage(value: unknown): LanguageSetting {
-  return value === "en" || value === "ja" || value === "auto"
-    ? value
-    : DEFAULT_SETTINGS.language;
-}
-
-function normalizeFilenameFormat(value: unknown): FilenameFormat {
-  return value === "title" || value === "titleId" || value === "id"
-    ? value
-    : DEFAULT_SETTINGS.filenameFormat;
-}
-
-function normalizeDownloadFolder(value: unknown): string {
-  if (typeof value !== "string") {
-    return DEFAULT_SETTINGS.defaultDownloadFolder;
-  }
-
-  const normalized = value.trim().replace(/\\/g, "/");
-  const segments = normalized
-    .split("/")
-    .map((segment) => sanitizeFolderSegment(segment))
-    .filter(Boolean);
-
-  if (
-    segments[0]?.toLowerCase() === "downloads" ||
-    segments[0] === "ダウンロード"
-  ) {
-    segments.shift();
-  }
-
-  return segments.join("/");
-}
-
-function sanitizeFolderSegment(value: string): string {
-  const sanitized = value
-    .replace(/[<>:"\\|?*\x00-\x1F]/g, "_")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/^\.+$/, "");
-
-  return sanitized === "." || sanitized === ".." ? "" : sanitized;
 }
 
 function formatDownloadFolderForForm(folder: string): string {
