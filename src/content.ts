@@ -65,6 +65,7 @@
   ]);
   const OVERLAY_ID = "yt-cap-overlay";
   const CLOSE_EVENT = "yt-cap-close";
+  const KEY_EVENT_TYPES = ["keydown", "keypress", "keyup"] as const;
   const VIDEO_PATH_PREFIXES = ["/shorts/", "/live/", "/embed/"];
   const THUMBNAIL_QUALITIES = [
     "maxresdefault",
@@ -125,10 +126,11 @@
       downloading: false,
     };
 
-    const overlay = document.createElement("div");
+    // <dialog> をモーダルで開くと、ブラウザが最前面の層（top layer）に表示してくれる。
+    // 全画面再生中の動画より前に出せるうえ、裏のページへフォーカスや入力が抜けなくなる。
+    const overlay = document.createElement("dialog");
     overlay.id = OVERLAY_ID;
-    overlay.setAttribute("role", "dialog");
-    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-label", "yt-cap");
 
     const panel = document.createElement("div");
     panel.className = "yt-cap-panel";
@@ -145,6 +147,7 @@
     overlay.append(panel);
     document.documentElement.append(overlay);
     document.documentElement.classList.add("yt-cap-scroll-lock");
+    overlay.showModal();
 
     const cleanup = (): void => {
       // 片付け済みなら何もしない（後から開いた別のプレビューを巻き込まないため）。
@@ -152,7 +155,12 @@
         return;
       }
 
-      document.removeEventListener("keydown", onKeyDown, true);
+      for (const type of KEY_EVENT_TYPES) {
+        document.removeEventListener(type, onKey, true);
+      }
+
+      // close() を呼ぶと、開く前にフォーカスがあった場所へブラウザが戻してくれる。
+      overlay.close();
       overlay.remove();
       restoreScroll();
     };
@@ -185,23 +193,24 @@
           useSaveDialog,
         });
 
-        if (!response.ok) {
-          if (response.canceled) {
-            setStatus(formatDownloadHint(m.downloadHint));
-            return;
-          }
-
-          setStatus(response.error, "error");
+        if (response.ok) {
+          // 保存できたら閉じるまで操作を受け付けない（downloading は戻さない）。
+          // ここで戻すと、閉じるまでの間の Enter で同じ画像がもう一度保存されてしまう。
+          setStatus(m.downloaded, "success");
+          window.setTimeout(cleanup, 700);
           return;
         }
 
-        setStatus(m.downloaded, "success");
-        window.setTimeout(cleanup, 700);
+        if (response.canceled) {
+          setStatus(formatDownloadHint(m.downloadHint));
+        } else {
+          setStatus(response.error, "error");
+        }
       } catch {
         setStatus(m.downloadFailed, "error");
-      } finally {
-        state.downloading = false;
       }
+
+      state.downloading = false;
     };
 
     const tryNextThumbnail = (): void => {
@@ -219,15 +228,22 @@
       );
     };
 
-    const onKeyDown = (event: KeyboardEvent): void => {
+    const onKey = (event: KeyboardEvent): void => {
+      // 表示中のキー操作は、再生/停止など YouTube 側のショートカットに渡さない。
+      event.stopPropagation();
+
+      if (event.type !== "keydown") {
+        return;
+      }
+
       if (event.key === "Escape") {
         event.preventDefault();
-        event.stopPropagation();
         cleanup();
         return;
       }
 
-      if (event.key !== "Enter") {
+      // 押しっぱなしによる連続入力では保存しない。
+      if (event.key !== "Enter" || event.repeat) {
         return;
       }
 
@@ -238,11 +254,15 @@
       }
 
       event.preventDefault();
-      event.stopPropagation();
       void download(useSaveDialog);
     };
 
     overlay.addEventListener(CLOSE_EVENT, cleanup);
+    // Escape などブラウザ側の操作で閉じられる場合も、同じ片付けを通す。
+    overlay.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      cleanup();
+    });
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) {
         cleanup();
@@ -265,7 +285,10 @@
       setStatus(formatDownloadHint(m.downloadHint));
     });
     image.addEventListener("error", tryNextThumbnail);
-    document.addEventListener("keydown", onKeyDown, true);
+
+    for (const type of KEY_EVENT_TYPES) {
+      document.addEventListener(type, onKey, true);
+    }
 
     image.src = buildThumbnailUrl(
       metadata.videoId,

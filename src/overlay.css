@@ -3,13 +3,25 @@
   background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  border: 0;
   box-sizing: border-box;
   display: flex;
+  height: 100%;
   inset: 0;
   justify-content: center;
+  margin: 0;
+  max-height: none;
+  max-width: none;
+  outline: none;
+  overflow: hidden;
   padding: 32px;
   position: fixed;
+  width: 100%;
   z-index: 2147483647;
+}
+
+#yt-cap-overlay::backdrop {
+  background: transparent;
 }
 
 .yt-cap-scroll-lock {
